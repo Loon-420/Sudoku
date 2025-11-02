@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Master</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --cor-primaria: #4CAF50;
+            --cor-secundaria: #2196F3;
+            --cor-fundo: #f5f5f5;
+            --cor-texto: #333;
+            --cor-borda: #ddd;
+            --cor-erro: #f44336;
+            --cor-sucesso: #4CAF50;
+            --cor-destaque: #FF9800;
+        }
+
+        [data-theme="escuro"] {
+            --cor-primaria: #2E7D32;
+            --cor-secundaria: #1565C0;
+            --cor-fundo: #121212;
+            --cor-texto: #e0e0e0;
+            --cor-borda: #424242;
+            --cor-erro: #d32f2f;
+            --cor-sucesso: #388E3C;
+            --cor-destaque: #F57C00;
+        }
+
+        [data-theme="azul"] {
+            --cor-primaria: #1976D2;
+            --cor-secundaria: #0D47A1;
+            --cor-fundo: #E3F2FD;
+            --cor-texto: #0D47A1;
+            --cor-borda: #90CAF9;
+            --cor-erro: #d32f2f;
+            --cor-sucesso: #388E3C;
+            --cor-destaque: #FF9800;
+        }
+
+        [data-theme="vermelho"] {
+            --cor-primaria: #C62828;
+            --cor-secundaria: #B71C1C;
+            --cor-fundo: #FFEBEE;
+            --cor-texto: #B71C1C;
+            --cor-borda: #EF9A9A;
+            --cor-erro: #d32f2f;
+            --cor-sucesso: #388E3C;
+            --cor-destaque: #FF9800;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        header {
+            background-color: var(--cor-primaria);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .secao-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        h1, h2 {
+            margin-bottom: 1rem;
+            color: var(--cor-primaria);
+        }
+
+        .bloco-personalizacao {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .input-personalizado, .select-personalizado {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--cor-borda);
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: white;
+            color: var(--cor-texto);
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--cor-primaria);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--cor-secundaria);
+        }
+
+        .btn-secondary {
+            background-color: var(--cor-borda);
+            color: var(--cor-texto);
+        }
+
+        .btn-secondary:hover {
+            background-color: #ccc;
+        }
+
+        /* Estilos específicos do Sudoku */
+        .tabuleiro-sudoku {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-gap: 1px;
+            margin: 1rem 0;
+            border: 2px solid var(--cor-primaria);
+            background-color: var(--cor-primaria);
+        }
+
+        .celula-sudoku {
+            aspect-ratio: 1;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+
+        .celula-sudoku:nth-child(3n) {
+            border-right: 2px solid var(--cor-primaria);
+        }
+
+        .celula-sudoku:nth-child(n+19):nth-child(-n+27),
+        .celula-sudoku:nth-child(n+46):nth-child(-n+54) {
+            border-bottom: 2px solid var(--cor-primaria);
+        }
+
+        .celula-sudoku.original {
+            color: var(--cor-texto);
+            font-weight: bold;
+        }
+
+        .celula-sudoku.usuario {
+            color: var(--cor-secundaria);
+        }
+
+        .celula-sudoku.selecionada {
+            background-color: rgba(76, 175, 80, 0.2);
+        }
+
+        .celula-sudoku.erro {
+            color: var(--cor-erro);
+        }
+
+        .celula-sudoku.dica {
+            color: var(--cor-destaque);
+        }
+
+        .celula-sudoku.dica::after {
+            content: "?";
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 0.8rem;
+            color: var(--cor-destaque);
+        }
+
+        .controles-jogo {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .controles-jogo button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background-color: var(--cor-primaria);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .controles-jogo button:hover {
+            background-color: var(--cor-secundaria);
+        }
+
+        .numeros-jogo {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .numero-btn {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background-color: var(--cor-borda);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .numero-btn:hover {
+            background-color: #ccc;
+        }
+
+        .numero-btn.ativo {
+            background-color: var(--cor-primaria);
+            color: white;
+        }
+
+        .info-jogo {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .dashboard-estatisticas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .estatistica-card {
+            background-color: var(--cor-borda);
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .estatistica-valor {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--cor-primaria);
+        }
+
+        .estatistica-label {
+            font-size: 0.9rem;
+            color: var(--cor-texto);
+        }
+
+        .mensagem-status {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .mensagem-sucesso {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--cor-sucesso);
+        }
+
+        .mensagem-erro {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: var(--cor-erro);
+        }
+
+        .dificuldade-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+
+        .dificuldade-facil {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--cor-sucesso);
+        }
+
+        .dificuldade-medio {
+            background-color: rgba(255, 152, 0, 0.2);
+            color: var(--cor-destaque);
+        }
+
+        .dificuldade-dificil {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: var(--cor-erro);
+        }
+
+        .dificuldade-expert {
+            background-color: rgba(156, 39, 176, 0.2);
+            color: #9C27B0;
+        }
+
+        @media (max-width: 600px) {
+            .celula-sudoku {
+                font-size: 1.2rem;
+            }
+            
+            .controles-jogo {
+                flex-direction: column;
+            }
+            
+            .controles-jogo button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body data-theme="padrao">
+    <header class="cor-principal-fundo">
+        <h1><i class="fas fa-th"></i> Sudoku Master</h1>
+    </header>
+
+    <main class="container">
+        <section id="secaoInicio" class="secao-card">
+            <h2>Bem-vindo(a) ao Sudoku Master!</h2>
+            <div class="bloco-personalizacao">
+                <label for="nomeJogador">Seu Nome:</label>
+                <input type="text" id="nomeJogador" class="input-personalizado" placeholder="Digite seu nome">
+            </div>
+            
+            <button id="btnIniciarJogo" class="btn-primary">Iniciar Jogo</button>
+            <button id="btnConfig" class="btn-secondary">Configurações</button>
+            <button id="btnPersonalizar" class="btn-secondary">Personalizar</button>
+            <button id="btnEstatisticas" class="btn-secondary">Estatísticas</button>
+        </section>
+
+        <section id="secaoConfig" class="secao-card" style="display:none;">
+            <h2>Configurações do Jogo</h2>
+            <div class="bloco-personalizacao">
+                <label for="selectDificuldade">Dificuldade:</label>
+                <select id="selectDificuldade" class="select-personalizado">
+                    <option value="facil">Fácil</option>
+                    <option value="medio">Médio</option>
+                    <option value="dificil">Difícil</option>
+                    <option value="expert">Expert</option>
+                </select>
+            </div>
+            <div class="bloco-personalizacao">
+                <label for="selectNivel">Nível:</label>
+                <select id="selectNivel" class="select-personalizado">
+                    <!-- Os níveis serão preenchidos dinamicamente -->
+                </select>
+            </div>
+            <button id="btnSalvarConfig" class="btn-primary">Salvar e Voltar</button>
+            <button id="btnVoltarConfig" class="btn-secondary">Voltar</button>
+        </section>
+
+        <section id="secaoPersonalizacao" class="secao-card" style="display:none;">
+            <h2>Personalizar</h2>
+            <div class="bloco-personalizacao">
+                <label for="selectTema">Tema:</label>
+                <select id="selectTema" class="select-personalizado">
+                    <option value="padrao">Padrão</option>
+                    <option value="escuro">Escuro</option>
+                    <option value="azul">Azul</option>
+                    <option value="vermelho">Vermelho</option>
+                </select>
+            </div>
+            <button id="btnAplicarPersonalizacao" class="btn-primary">Aplicar e Voltar</button>
+        </section>
+
+        <section id="secaoJogo" class="secao-card" style="display:none;">
+            <div class="info-jogo">
+                <div>
+                    <span>Jogador: <span id="nomeJogadorAtual" class="cor-principal-texto"></span></span>
+                    <span id="dificuldadeAtual" class="dificuldade-badge dificuldade-facil">Fácil</span>
+                </div>
+                <div>
+                    <span>Tempo: <span id="tempoJogo">00:00</span></span>
+                </div>
+                <div>
+                    <span>Nível: <span id="nivelAtual">1</span>/<span id="totalNiveis">100</span></span>
+                </div>
+            </div>
+
+            <div id="tabuleiroSudoku" class="tabuleiro-sudoku">
+                <!-- O tabuleiro será gerado dinamicamente -->
+            </div>
+
+            <div class="controles-jogo">
+                <button id="btnVerificar"><i class="fas fa-check"></i> Verificar</button>
+                <button id="btnDica"><i class="fas fa-lightbulb"></i> Dica</button>
+                <button id="btnResolver"><i class="fas fa-bolt"></i> Resolver</button>
+                <button id="btnReiniciar"><i class="fas fa-redo"></i> Reiniciar</button>
+                <button id="btnNovoJogo"><i class="fas fa-plus"></i> Novo Jogo</button>
+            </div>
+
+            <div class="numeros-jogo">
+                <!-- Os botões de números serão gerados dinamicamente -->
+            </div>
+
+            <p id="mensagemJogo" class="mensagem-status"></p>
+        </section>
+
+        <section id="secaoEstatisticas" class="secao-card" style="display:none;">
+            <h2>Estatísticas do Jogo</h2>
+            <div id="dashboardEstatisticas" class="dashboard-estatisticas">
+                <div class="estatistica-card">
+                    <div class="estatistica-valor" id="estatJogosCompletos">0</div>
+                    <div class="estatistica-label">Jogos Completos</div>
+                </div>
+                <div class="estatistica-card">
+                    <div class="estatistica-valor" id="estatMelhorTempo">00:00</div>
+                    <div class="estatistica-label">Melhor Tempo</div>
+                </div>
+                <div class="estatistica-card">
+                    <div class="estatistica-valor" id="estatNivelMaximo">1</div>
+                    <div class="estatistica-label">Nível Máximo</div>
+                </div>
+                <div class="estatistica-card">
+                    <div class="estatistica-valor" id="estatDicasUsadas">0</div>
+                    <div class="estatistica-label">Dicas Usadas</div>
+                </div>
+            </div>
+            <button id="btnNovoJogoEstat" class="btn-primary">Novo Jogo</button>
+            <button id="btnVoltarEstat" class="btn-secondary">Voltar</button>
+        </section>
+
+        <section id="secaoVitoria" class="secao-card" style="display:none;">
+            <h2>Parabéns! <i class="fas fa-trophy"></i></h2>
+            <p>Você completou o nível <span id="nivelCompletado">1</span> com sucesso!</p>
+            <div class="info-jogo">
+                <div>Tempo: <span id="tempoCompletado">00:00</span></div>
+                <div>Dicas usadas: <span id="dicasUsadasCompletado">0</span></div>
+            </div>
+            <button id="btnProximoNivel" class="btn-primary">Próximo Nível</button>
+            <button id="btnMenuPrincipalVitoria" class="btn-secondary">Menu Principal</button>
+        </section>
+    </main>
+
+    <script>
+        // Dados do jogo
+        const jogador = {
+            nome: '',
+            nivelAtual: 1,
+            tempo: 0,
+            dicasUsadas: 0,
+            jogosCompletos: 0,
+            melhorTempo: 0,
+            nivelMaximo: 1
+        };
+
+        // Tabuleiro atual
+        let tabuleiro = [];
+        let solucao = [];
+        let celulasOriginais = [];
+        let celulaSelecionada = null;
+        let timerInterval = null;
+        let nivelAtual = 1;
+        const totalNiveis = 100;
+
+        // Gerador de Sudoku
+        function gerarSudoku(dificuldade = 'facil') {
+            // Inicializar tabuleiro vazio
+            const board = Array(9).fill().map(() => Array(9).fill(0));
+            
+            // Preencher diagonal de blocos 3x3 (são independentes)
+            for (let i = 0; i < 9; i += 3) {
+                preencherBloco(board, i, i);
+            }
+            
+            // Resolver o tabuleiro completo
+            resolverSudoku(board);
+            
+            // Fazer uma cópia da solução
+            const solution = board.map(row => [...row]);
+            
+            // Remover números baseado na dificuldade
+            let celulasParaRemover;
+            switch(dificuldade) {
+                case 'facil': celulasParaRemover = 30; break;
+                case 'medio': celulasParaRemover = 40; break;
+                case 'dificil': celulasParaRemover = 50; break;
+                case 'expert': celulasParaRemover = 60; break;
+                default: celulasParaRemover = 40;
+            }
+            
+            // Remover números aleatoriamente
+            const posicoes = [];
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    posicoes.push([i, j]);
+                }
+            }
+            
+            // Embaralhar posições
+            for (let i = posicoes.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [posicoes[i], posicoes[j]] = [posicoes[j], posicoes[i]];
+            }
+            
+            // Remover células
+            const originalCells = [];
+            for (let i = 0; i < celulasParaRemover; i++) {
+                const [row, col] = posicoes[i];
+                originalCells.push({row, col, value: board[row][col]});
+                board[row][col] = 0;
+            }
+            
+            return { board, solution, originalCells };
+        }
+
+        function preencherBloco(board, row, col) {
+            const numeros = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            
+            // Embaralhar números
+            for (let i = numeros.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [numeros[i], numeros[j]] = [numeros[j], numeros[i]];
+            }
+            
+            // Preencher o bloco 3x3
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    board[row + i][col + j] = numeros.pop();
+                }
+            }
+        }
+
+        function resolverSudoku(board) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (board[row][col] === 0) {
+                        for (let num = 1; num <= 9; num++) {
+                            if (isValido(board, row, col, num)) {
+                                board[row][col] = num;
+                                
+                                if (resolverSudoku(board)) {
+                                    return true;
+                                }
+                                
+                                board[row][col] = 0;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function isValido(board, row, col, num) {
+            // Verificar linha
+            for (let x = 0; x < 9; x++) {
+                if (board[row][x] === num) return false;
+            }
+            
+            // Verificar coluna
+            for (let x = 0; x < 9; x++) {
+                if (board[x][col] === num) return false;
+            }
+            
+            // Verificar bloco 3x3
+            const startRow = row - row % 3;
+            const startCol = col - col % 3;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i + startRow][j + startCol] === num) return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // Interface do usuário
+        function inicializarJogo() {
+            // Obter configurações
+            const dificuldade = document.getElementById('selectDificuldade').value;
+            nivelAtual = parseInt(document.getElementById('selectNivel').value) || 1;
+            
+            // Gerar novo sudoku
+            const { board, solution, originalCells } = gerarSudoku(dificuldade);
+            tabuleiro = board;
+            solucao = solution;
+            celulasOriginais = originalCells;
+            
+            // Atualizar interface
+            document.getElementById('nivelAtual').textContent = nivelAtual;
+            document.getElementById('totalNiveis').textContent = totalNiveis;
+            
+            // Atualizar badge de dificuldade
+            const dificuldadeBadge = document.getElementById('dificuldadeAtual');
+            dificuldadeBadge.textContent = dificuldade.charAt(0).toUpperCase() + dificuldade.slice(1);
+            dificuldadeBadge.className = 'dificuldade-badge';
+            switch(dificuldade) {
+                case 'facil': dificuldadeBadge.classList.add('dificuldade-facil'); break;
+                case 'medio': dificuldadeBadge.classList.add('dificuldade-medio'); break;
+                case 'dificil': dificuldadeBadge.classList.add('dificuldade-dificil'); break;
+                case 'expert': dificuldadeBadge.classList.add('dificuldade-expert'); break;
+            }
+            
+            // Renderizar tabuleiro
+            renderizarTabuleiro();
+            
+            // Renderizar controles de números
+            renderizarControlesNumeros();
+            
+            // Iniciar timer
+            iniciarTimer();
+            
+            // Resetar dicas usadas para este jogo
+            jogador.dicasUsadas = 0;
+            
+            // Mostrar seção de jogo
+            mostrarSecao('secaoJogo');
+        }
+
+        function renderizarTabuleiro() {
+            const tabuleiroElement = document.getElementById('tabuleiroSudoku');
+            tabuleiroElement.innerHTML = '';
+            
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    const celula = document.createElement('div');
+                    celula.className = 'celula-sudoku';
+                    celula.dataset.row = i;
+                    celula.dataset.col = j;
+                    
+                    // Verificar se é uma célula original (pré-preenchida)
+                    const isOriginal = celulasOriginais.some(c => c.row === i && c.col === j);
+                    
+                    if (tabuleiro[i][j] !== 0) {
+                        celula.textContent = tabuleiro[i][j];
+                        if (isOriginal) {
+                            celula.classList.add('original');
+                        } else {
+                            celula.classList.add('usuario');
+                        }
+                    }
+                    
+                    // Adicionar evento de clique
+                    celula.addEventListener('click', () => selecionarCelula(i, j));
+                    
+                    tabuleiroElement.appendChild(celula);
+                }
+            }
+        }
+
+        function renderizarControlesNumeros() {
+            const controlesElement = document.querySelector('.numeros-jogo');
+            controlesElement.innerHTML = '';
+            
+            for (let i = 1; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'numero-btn';
+                btn.textContent = i;
+                btn.addEventListener('click', () => inserirNumero(i));
+                controlesElement.appendChild(btn);
+            }
+            
+            // Adicionar botão para apagar
+            const btnApagar = document.createElement('button');
+            btnApagar.className = 'numero-btn';
+            btnApagar.innerHTML = '<i class="fas fa-eraser"></i>';
+            btnApagar.addEventListener('click', apagarNumero);
+            controlesElement.appendChild(btnApagar);
+        }
+
+        function selecionarCelula(row, col) {
+            // Desselecionar célula anterior
+            if (celulaSelecionada) {
+                const celulaAnterior = document.querySelector(`.celula-sudoku[data-row="${celulaSelecionada.row}"][data-col="${celulaSelecionada.col}"]`);
+                if (celulaAnterior) {
+                    celulaAnterior.classList.remove('selecionada');
+                }
+            }
+            
+            // Verificar se é uma célula original (não pode ser editada)
+            const isOriginal = celulasOriginais.some(c => c.row === row && c.col === col);
+            if (isOriginal) {
+                celulaSelecionada = null;
+                return;
+            }
+            
+            // Selecionar nova célula
+            celulaSelecionada = { row, col };
+            const celula = document.querySelector(`.celula-sudoku[data-row="${row}"][data-col="${col}"]`);
+            celula.classList.add('selecionada');
+        }
+
+        function inserirNumero(num) {
+            if (!celulaSelecionada) return;
+            
+            const { row, col } = celulaSelecionada;
+            
+            // Verificar se a célula pode ser editada
+            const isOriginal = celulasOriginais.some(c => c.row === row && c.col === col);
+            if (isOriginal) return;
+            
+            // Atualizar tabuleiro
+            tabuleiro[row][col] = num;
+            
+            // Atualizar interface
+            const celula = document.querySelector(`.celula-sudoku[data-row="${row}"][data-col="${col}"]`);
+            celula.textContent = num;
+            celula.classList.add('usuario');
+            
+            // Verificar se há erro
+            if (num !== solucao[row][col]) {
+                celula.classList.add('erro');
+                mostrarMensagem('Número incorreto!', 'erro');
+            } else {
+                celula.classList.remove('erro');
+                mostrarMensagem('', '');
+                
+                // Verificar se o jogo foi completado
+                if (isJogoCompleto()) {
+                    completarJogo();
+                }
+            }
+        }
+
+        function apagarNumero() {
+            if (!celulaSelecionada) return;
+            
+            const { row, col } = celulaSelecionada;
+            
+            // Verificar se a célula pode ser editada
+            const isOriginal = celulasOriginais.some(c => c.row === row && c.col === col);
+            if (isOriginal) return;
+            
+            // Atualizar tabuleiro
+            tabuleiro[row][col] = 0;
+            
+            // Atualizar interface
+            const celula = document.querySelector(`.celula-sudoku[data-row="${row}"][data-col="${col}"]`);
+            celula.textContent = '';
+            celula.classList.remove('usuario', 'erro', 'dica');
+        }
+
+        function isJogoCompleto() {
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    if (tabuleiro[i][j] !== solucao[i][j]) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function completarJogo() {
+            // Parar timer
+            clearInterval(timerInterval);
+            
+            // Atualizar estatísticas do jogador
+            jogador.jogosCompletos++;
+            jogador.nivelMaximo = Math.max(jogador.nivelMaximo, nivelAtual);
+            
+            // Verificar se é o melhor tempo
+            if (jogador.melhorTempo === 0 || jogador.tempo < jogador.melhorTempo) {
+                jogador.melhorTempo = jogador.tempo;
+            }
+            
+            // Atualizar interface de vitória
+            document.getElementById('nivelCompletado').textContent = nivelAtual;
+            document.getElementById('tempoCompletado').textContent = formatarTempo(jogador.tempo);
+            document.getElementById('dicasUsadasCompletado').textContent = jogador.dicasUsadas;
+            
+            // Mostrar seção de vitória
+            mostrarSecao('secaoVitoria');
+        }
+
+        function verificarJogo() {
+            let temErros = false;
+            
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    const celula = document.querySelector(`.celula-sudoku[data-row="${i}"][data-col="${j}"]`);
+                    
+                    if (tabuleiro[i][j] !== 0 && tabuleiro[i][j] !== solucao[i][j]) {
+                        celula.classList.add('erro');
+                        temErros = true;
+                    } else {
+                        celula.classList.remove('erro');
+                    }
+                }
+            }
+            
+            if (temErros) {
+                mostrarMensagem('Há erros no tabuleiro!', 'erro');
+            } else {
+                mostrarMensagem('Tabuleiro correto! Continue assim!', 'sucesso');
+            }
+        }
+
+        function darDica() {
+            if (!celulaSelecionada) {
+                mostrarMensagem('Selecione uma célula para receber uma dica!', 'erro');
+                return;
+            }
+            
+            const { row, col } = celulaSelecionada;
+            
+            // Verificar se a célula já está preenchida corretamente
+            if (tabuleiro[row][col] === solucao[row][col]) {
+                mostrarMensagem('Esta célula já está correta!', 'erro');
+                return;
+            }
+            
+            // Preencher a célula com a solução
+            tabuleiro[row][col] = solucao[row][col];
+            
+            // Atualizar interface
+            const celula = document.querySelector(`.celula-sudoku[data-row="${row}"][data-col="${col}"]`);
+            celula.textContent = solucao[row][col];
+            celula.classList.add('dica');
+            celula.classList.remove('erro');
+            
+            // Atualizar contador de dicas
+            jogador.dicasUsadas++;
+            
+            // Verificar se o jogo foi completado
+            if (isJogoCompleto()) {
+                completarJogo();
+            }
+        }
+
+        function resolverJogo() {
+            if (confirm('Tem certeza que deseja resolver o jogo automaticamente?')) {
+                // Preencher todo o tabuleiro com a solução
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        tabuleiro[i][j] = solucao[i][j];
+                    }
+                }
+                
+                // Atualizar interface
+                renderizarTabuleiro();
+                
+                // Completar o jogo
+                completarJogo();
+            }
+        }
+
+        function reiniciarJogo() {
+            if (confirm('Tem certeza que deseja reiniciar o jogo?')) {
+                // Restaurar tabuleiro original
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        tabuleiro[i][j] = 0;
+                    }
+                }
+                
+                // Preencher células originais
+                celulasOriginais.forEach(c => {
+                    tabuleiro[c.row][c.col] = c.value;
+                });
+                
+                // Atualizar interface
+                renderizarTabuleiro();
+                
+                // Resetar timer
+                jogador.tempo = 0;
+                document.getElementById('tempoJogo').textContent = '00:00';
+                
+                // Resetar mensagens
+                mostrarMensagem('', '');
+            }
+        }
+
+        function iniciarTimer() {
+            // Parar timer anterior, se existir
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // Resetar tempo
+            jogador.tempo = 0;
+            document.getElementById('tempoJogo').textContent = '00:00';
+            
+            // Iniciar novo timer
+            timerInterval = setInterval(() => {
+                jogador.tempo++;
+                document.getElementById('tempoJogo').textContent = formatarTempo(jogador.tempo);
+            }, 1000);
+        }
+
+        function formatarTempo(segundos) {
+            const minutos = Math.floor(segundos / 60);
+            const segs = segundos % 60;
+            return `${minutos.toString().padStart(2, '0')}:${segs.toString().padStart(2, '0')}`;
+        }
+
+        function mostrarMensagem(mensagem, tipo) {
+            const elemento = document.getElementById('mensagemJogo');
+            elemento.textContent = mensagem;
+            elemento.className = 'mensagem-status';
+            
+            if (tipo === 'sucesso') {
+                elemento.classList.add('mensagem-sucesso');
+            } else if (tipo === 'erro') {
+                elemento.classList.add('mensagem-erro');
+            }
+        }
+
+        function mostrarSecao(idSecao) {
+            // Esconder todas as seções
+            const secoes = document.querySelectorAll('.secao-card');
+            secoes.forEach(sec
