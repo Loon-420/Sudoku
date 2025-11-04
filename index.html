@@ -8,19 +8,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <!-- PWA Meta Tags -->
-    <link rel="manifest" href="/JogodaForca/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Sudoku Master">
-    <link rel="apple-touch-icon" href="/JogodaForca/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <meta name="theme-color" content="#4CAF50">
     <meta name="description" content="Jogo de Sudoku com mais de 100 níveis diferentes e múltiplas dificuldades">
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Sudoku Master">
-    <meta property="og:description" content="Jogo de Sudoku com mais de 100 níveis diferentes">
-    <meta property="og:type" content="game">
-    <meta property="og:image" content="/JogodaForca/icons/icon-512x512.png">
 </head>
 <body data-theme="padrao">
     <header class="cor-principal-fundo">
@@ -113,25 +107,25 @@
             </div>
 
             <div class="controles-jogo">
-                <button id="btnVerificar" data-tooltip="Verificar erros">
+                <button id="btnVerificar">
                     <i class="fas fa-check"></i> Verificar
                 </button>
-                <button id="btnDica" data-tooltip="Receber uma dica">
+                <button id="btnDica">
                     <i class="fas fa-lightbulb"></i> Dica
                 </button>
-                <button id="btnResolver" data-tooltip="Resolver automaticamente">
+                <button id="btnResolver">
                     <i class="fas fa-bolt"></i> Resolver
                 </button>
-                <button id="btnReiniciar" data-tooltip="Reiniciar nível">
+                <button id="btnReiniciar">
                     <i class="fas fa-redo"></i> Reiniciar
                 </button>
-                <button id="btnNovoJogo" data-tooltip="Novo jogo">
+                <button id="btnNovoJogo">
                     <i class="fas fa-plus"></i> Novo Jogo
                 </button>
             </div>
 
-            <div class="numeros-jogo">
-                <!-- Os botões de números serão gerados dinamicamente -->
+            <div class="instrucoes-teclado">
+                <p><strong>Como jogar:</strong> Clique em uma célula vazia e digite 1-9. Use Backspace para apagar.</p>
             </div>
 
             <p id="mensagemJogo" class="mensagem-status"></p>
@@ -183,44 +177,6 @@
         </section>
     </main>
 
-    <!-- Scripts -->
     <script src="app.js"></script>
-    
-    <!-- Service Worker Registration -->
-    <script>
-        // Registrar Service Worker para PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/JogodaForca/sw.js')
-                    .then(function(registration) {
-                        console.log('ServiceWorker registrado com sucesso: ', registration.scope);
-                    })
-                    .catch(function(error) {
-                        console.log('Falha ao registrar ServiceWorker: ', error);
-                    });
-            });
-        }
-
-        // Prevenir zoom em dispositivos móveis
-        document.addEventListener('touchstart', function(event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
-            }
-        });
-
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-
-        // Prevenir menu de contexto em dispositivos móveis
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        }, false);
-    </script>
 </body>
 </html>
