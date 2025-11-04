@@ -219,6 +219,7 @@ label {
     transition: var(--transicao);
     position: relative;
     user-select: none;
+    min-height: 44px;
 }
 
 /* Bordas do tabuleiro */
@@ -232,10 +233,23 @@ label {
 }
 
 /* Estados das células */
-.celula-sudoku.original {
+.celula-sudoku.fixed {
     color: var(--cor-texto);
     font-weight: 700;
     background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+.celula-sudoku.editavel {
+    cursor: text;
+    background-color: #ffffff;
+}
+
+.celula-sudoku.editavel:focus {
+    outline: 3px solid var(--cor-primaria);
+    outline-offset: -2px;
+    background-color: rgba(76, 175, 80, 0.1);
+    z-index: 10;
 }
 
 .celula-sudoku.usuario {
@@ -311,41 +325,20 @@ label {
     transform: translateY(0);
 }
 
-/* Teclado Numérico */
-.numeros-jogo {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.75rem;
-    margin: 1.5rem 0;
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.numero-btn {
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    font-weight: bold;
-    background-color: var(--cor-borda);
-    border: none;
+/* Instruções do Teclado */
+.instrucoes-teclado {
+    background-color: rgba(76, 175, 80, 0.1);
+    padding: 1rem;
     border-radius: var(--borda-radius);
-    cursor: pointer;
-    transition: var(--transicao);
+    text-align: center;
+    margin: 1rem 0;
+    border-left: 4px solid var(--cor-primaria);
+}
+
+.instrucoes-teclado p {
+    margin: 0;
+    font-size: 0.9rem;
     color: var(--cor-texto);
-}
-
-.numero-btn:hover {
-    background-color: #ccc;
-    transform: scale(1.05);
-}
-
-.numero-btn.ativo {
-    background-color: var(--cor-primaria);
-    color: white;
-    transform: scale(1.1);
 }
 
 /* Informações do Jogo */
@@ -496,11 +489,6 @@ label {
     gap: 0.5rem;
 }
 
-/* Modo PWA */
-.pwa-mode header {
-    padding-top: env(safe-area-inset-top);
-}
-
 /* Responsividade */
 @media (max-width: 768px) {
     .container {
@@ -522,6 +510,7 @@ label {
     
     .celula-sudoku {
         font-size: 1.2rem;
+        min-height: 40px;
     }
     
     .controles-jogo {
@@ -548,16 +537,6 @@ label {
         width: 100%;
         margin: 0.25rem 0;
     }
-    
-    .numeros-jogo {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 0.5rem;
-        max-width: 250px;
-    }
-    
-    .numero-btn {
-        font-size: 1.1rem;
-    }
 }
 
 @media (max-width: 480px) {
@@ -567,6 +546,7 @@ label {
     
     .celula-sudoku {
         font-size: 1rem;
+        min-height: 35px;
     }
     
     .estatistica-valor {
@@ -598,50 +578,6 @@ label {
     animation: slideIn 0.5s ease-out;
 }
 
-/* Estados de loading */
-.loading {
-    opacity: 0.7;
-    pointer-events: none;
-    position: relative;
-}
-
-.loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    margin: -10px 0 0 -10px;
-    border: 2px solid var(--cor-primaria);
-    border-top: 2px solid transparent;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Scrollbar personalizada */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--cor-fundo);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--cor-primaria);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--cor-secundaria);
-}
-
 /* Focus visible para acessibilidade */
 button:focus-visible,
 .input-personalizado:focus-visible,
@@ -662,34 +598,4 @@ button:disabled:hover {
     background-color: var(--cor-borda);
     transform: none;
     box-shadow: none;
-}
-
-/* Tooltips */
-[data-tooltip] {
-    position: relative;
-}
-
-[data-tooltip]:hover::before {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--cor-texto);
-    color: white;
-    padding: 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    white-space: nowrap;
-    z-index: 1000;
-}
-
-[data-tooltip]:hover::after {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: var(--cor-texto);
 }
